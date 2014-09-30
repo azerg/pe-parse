@@ -1,0 +1,42 @@
+﻿2014/09/30 19:22:14 にビルドを開始しました。
+     1>ノード 2 上のプロジェクト "C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\pe-parse\pe-parse.vcxproj" (build ターゲット)。
+     1>InitializeBuildStatus:
+         "Release\pe-parse.unsuccessfulbuild" のタッチ タスクを実行しています。
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt buffer.cpp parse.cpp
+         buffer.cpp
+         parse.cpp
+     1>parse.cpp(135): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>parse.cpp(162): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>parse.cpp(668): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(696): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(750): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(778): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(817): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(846): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(892): warning C4244: '=' : 'uint64_t' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(940): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(985): warning C4244: '=' : 'uint64_t' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1036): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1071): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1125): warning C4244: '引数' : 'uint64_t' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1136): warning C4244: '引数' : 'uint64_t' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1161): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+     1>parse.cpp(1315): warning C4244: '初期化中' : 'VA' から 'uint32_t' への変換です。データが失われる可能性があります。
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\Release\pe-parse.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\pe-parse.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\Release\pe-parse.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\Release\pe-parse.lib" /MACHINE:X86 Release\buffer.obj
+         Release\dump.obj
+         Release\parse.obj
+         コード生成しています。
+         コード生成が終了しました。
+         pe-parse.vcxproj -> C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\Release\pe-parse.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\Release\pe-parse.exe;#1" /manifest "Release\pe-parse.exe.intermediate.manifest"
+       FinalizeBuildStatus:
+         ファイル "Release\pe-parse.unsuccessfulbuild" を削除しています。
+         "Release\pe-parse.lastbuildstate" のタッチ タスクを実行しています。
+     1>プロジェクト "C:\Users\aiko.FFRI\Documents\GitHub\pe-parse\vc++\pe-parse\pe-parse\pe-parse.vcxproj" (build ターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+
+経過時間 00:00:07.53
