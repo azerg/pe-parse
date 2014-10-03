@@ -144,7 +144,9 @@ bool readWord(bounded_buffer *b, boost::uint32_t offset, boost::uint16_t &out);
 bool readDword(bounded_buffer *b, boost::uint32_t offset, boost::uint32_t &out);
 bool readQword(bounded_buffer *b, boost::uint32_t offset, boost::uint64_t &out);
 
+bounded_buffer *readMemToFileBuffer(const char *head, unsigned long memSize);
 bounded_buffer *readFileToFileBuffer(const char *filePath);
+
 bounded_buffer *splitBuffer(bounded_buffer *b, boost::uint32_t from, boost::uint32_t to);
 void deleteBuffer(bounded_buffer *b);
 uint64_t bufLen(bounded_buffer *b);
@@ -172,6 +174,7 @@ std::string GetPEErrLoc();
 
 //get a PE parse context from a file 
 parsed_pe *ParsePEFromFile(const char *filePath);
+parsed_pe *ParsePEFromMem(const char *head, unsigned long memSize);
 
 //destruct a PE context
 void DestructParsedPE(parsed_pe *pe);

@@ -113,6 +113,44 @@ bool readQword(bounded_buffer *b, ::uint32_t offset, ::uint64_t &out) {
   return true;
 }
 
+bounded_buffer *readMemToFileBuffer(const char *head, unsigned long memSize) {
+  
+  //make a buffer object
+  bounded_buffer  *p = new bounded_buffer();
+
+  if(p == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  memset(p, 0, sizeof(bounded_buffer));
+  buffer_detail *d = new buffer_detail();
+
+  if(d == NULL) {
+    delete p;
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+  memset(d, 0, sizeof(buffer_detail));
+  p->detail = d;
+
+  p->detail->file = NULL;
+  p->detail->sec = NULL;
+
+  LPVOID  ptr = (LPVOID)head;
+
+  if(ptr == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  p->buf = (::uint8_t *)ptr;
+  p->bufLen = memSize;
+  p->copy = false;
+
+  return p;
+}
+
 bounded_buffer *readFileToFileBuffer(const char *filePath) {
 #ifdef WIN32
   HANDLE  h = CreateFileA(filePath, 

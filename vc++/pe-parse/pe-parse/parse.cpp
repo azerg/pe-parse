@@ -176,9 +176,6 @@ bool parse_resource_table(bounded_buffer *sectionData, ::uint32_t o, ::uint32_t 
 //    if(readDword((bounded_buffer *)e,0, rde->ID) == false) { PE_ERR(PEERR_READ); return false; };
 //    if(readDword((bounded_buffer *)e,4, rde->RVA) == false) { PE_ERR(PEERR_READ); return false; };
 	
-	printf("ID: %08x\n", rde->ID);
-	printf("RVA: %08x\n", rde->RVA);
-
     o += sizeof(resource_dir_entry_sz);
 
     if (depth == 0) {
@@ -584,7 +581,8 @@ bool getHeader(bounded_buffer *file, pe_header &p, bounded_buffer *&rem) {
   return true;
 }
 
-parsed_pe *ParsePEFromFile(const char *filePath) {
+parsed_pe *ParsePEFromXXX(parsed_pe *p) {
+  /*
   //first, create a new parsed_pe structure
   parsed_pe *p = new parsed_pe();
 
@@ -595,6 +593,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
 
   //make a new buffer object to hold just our file data
   p->fileBuffer = readFileToFileBuffer(filePath);
+  */
 
   if(p->fileBuffer == NULL) {
     delete p;
@@ -1231,6 +1230,34 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
   deleteBuffer(remaining);
 
   return p;
+}
+
+parsed_pe *ParsePEFromFile(const char *filePath) {
+  //first, create a new parsed_pe structure
+  parsed_pe *p = new parsed_pe();
+
+  if(p == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  //make a new buffer object to hold just our file data
+  p->fileBuffer = readFileToFileBuffer(filePath);
+  return ParsePEFromXXX(p);
+}
+
+parsed_pe *ParsePEFromMem(const char *head, unsigned long memSize) {
+  //first, create a new parsed_pe structure
+  parsed_pe *p = new parsed_pe();
+
+  if(p == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  //make a new buffer object to hold just our file data
+  p->fileBuffer = readMemToFileBuffer(head, memSize);
+  return ParsePEFromXXX(p);
 }
 
 void DestructParsedPE(parsed_pe *p) {
