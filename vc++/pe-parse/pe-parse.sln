@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pe-parse-lib", "pe-parse-li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pe-parse-test", "pe-parse-test\pe-parse-test.vcxproj", "{23802643-1389-49BF-AD56-BBB2E4DB0105}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pe-parse-dll", "pe-parse-dll\pe-parse-dll.vcxproj", "{A9270480-2C22-4258-8546-0CC5208EE015}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pe-parse-dll-test", "pe-parse-dll-test\pe-parse-dll-test.vcxproj", "{8173BE99-DCD1-4DEF-BA9E-D8531F56C897}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +29,14 @@ Global
 		{23802643-1389-49BF-AD56-BBB2E4DB0105}.Debug|Win32.Build.0 = Debug|Win32
 		{23802643-1389-49BF-AD56-BBB2E4DB0105}.Release|Win32.ActiveCfg = Release|Win32
 		{23802643-1389-49BF-AD56-BBB2E4DB0105}.Release|Win32.Build.0 = Release|Win32
+		{A9270480-2C22-4258-8546-0CC5208EE015}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A9270480-2C22-4258-8546-0CC5208EE015}.Debug|Win32.Build.0 = Debug|Win32
+		{A9270480-2C22-4258-8546-0CC5208EE015}.Release|Win32.ActiveCfg = Release|Win32
+		{A9270480-2C22-4258-8546-0CC5208EE015}.Release|Win32.Build.0 = Release|Win32
+		{8173BE99-DCD1-4DEF-BA9E-D8531F56C897}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8173BE99-DCD1-4DEF-BA9E-D8531F56C897}.Debug|Win32.Build.0 = Debug|Win32
+		{8173BE99-DCD1-4DEF-BA9E-D8531F56C897}.Release|Win32.ActiveCfg = Release|Win32
+		{8173BE99-DCD1-4DEF-BA9E-D8531F56C897}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
