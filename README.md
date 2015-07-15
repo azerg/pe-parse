@@ -22,7 +22,7 @@ Dependencies
 [cmake]: http://www.cmake.org/
 [boost]: http://www.boost.org/
 
-Building
+Building (old)
 ========
 pe-parse is built using [cmake] and depends on [boost].
 
