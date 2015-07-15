@@ -137,8 +137,6 @@ bounded_buffer *readMemToFileBuffer(const char *head, unsigned long memSize) {
 #ifdef WIN32
   p->detail->file = NULL;
   p->detail->sec = NULL;
-#else
-  p->fd = 0;
 #endif
 
   auto ptr = (void*)head;
