@@ -134,10 +134,14 @@ bounded_buffer *readMemToFileBuffer(const char *head, unsigned long memSize) {
   memset(d, 0, sizeof(buffer_detail));
   p->detail = d;
 
+#ifdef WIN32
   p->detail->file = NULL;
   p->detail->sec = NULL;
+#else
+  p->fd = 0;
+#endif
 
-  LPVOID  ptr = (LPVOID)head;
+  auto ptr = (void*)head;
 
   if(ptr == NULL) {
     PE_ERR(PEERR_MEM);
@@ -214,7 +218,7 @@ bounded_buffer *readFileToFileBuffer(const char *filePath) {
 
   p->detail->sec = hMap;
 
-  LPVOID  ptr = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
+  auto ptr = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
 
   if(ptr == NULL) {
     PE_ERR(PEERR_MEM);
