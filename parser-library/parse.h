@@ -25,18 +25,22 @@ THE SOFTWARE.
 #ifndef _PARSE_H
 #define _PARSE_H
 #include <string>
-#include <boost/cstdint.hpp>
-
+#include "boost/cstdint.hpp"
+//
 #include "nt-headers.h"
 #include "to_string.h"
+
+#define __func__ __FUNCTION__
+//#define __typeof__ typeid
 
 #define PE_ERR(x) \
   err = (pe_err) x; \
   err_loc.assign(__func__); \
   err_loc += ":" + to_string<boost::uint32_t>(__LINE__, dec);
 
-#define READ_WORD(b, o, inst, member) \
-if(readWord(b, o+_offset(__typeof__(inst), member), inst.member) == false) { \
+/*
+#define READ_WORD(b,o,inst,member) \
+if(readWord(b, o+((boost::uint32_t)(ptrdiff_t)&(((__typeof__(inst)*)0)->member)), inst.member) == false) { \
   PE_ERR(PEERR_READ); \
   return false; \
 }
@@ -65,12 +69,12 @@ if(readByte(b, o+_offset(__typeof__(inst), member), inst.member) == false) { \
   return false; \
 }
 
-/* This variant returns NULL instead of false. */
 #define READ_DWORD_NULL(b, o, inst, member) \
 if(readDword(b, o+_offset(__typeof__(inst), member), inst.member) == false) { \
   PE_ERR(PEERR_READ); \
   return NULL; \
 }
+*/
 
 typedef boost::uint32_t RVA;
 typedef boost::uint64_t VA;
@@ -140,7 +144,9 @@ bool readWord(bounded_buffer *b, boost::uint32_t offset, boost::uint16_t &out);
 bool readDword(bounded_buffer *b, boost::uint32_t offset, boost::uint32_t &out);
 bool readQword(bounded_buffer *b, boost::uint32_t offset, boost::uint64_t &out);
 
+bounded_buffer *readMemToFileBuffer(const char *head, unsigned long memSize);
 bounded_buffer *readFileToFileBuffer(const char *filePath);
+
 bounded_buffer *splitBuffer(bounded_buffer *b, boost::uint32_t from, boost::uint32_t to);
 void deleteBuffer(bounded_buffer *b);
 uint64_t bufLen(bounded_buffer *b);
@@ -168,6 +174,7 @@ std::string GetPEErrLoc();
 
 //get a PE parse context from a file 
 parsed_pe *ParsePEFromFile(const char *filePath);
+parsed_pe *ParsePEFromMem(const char *head, unsigned long memSize);
 
 //destruct a PE context
 void DestructParsedPE(parsed_pe *pe);

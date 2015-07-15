@@ -96,7 +96,7 @@ bool getSecForVA(list<section> &secs, VA v, section &sec) {
       ++it)
   {
     section s = *it;
-  
+
     ::uint64_t  low = s.sectionBase;
     ::uint64_t  high = low + s.sec.Misc.VirtualSize;
 
@@ -147,12 +147,12 @@ bool parse_resource_table(bounded_buffer *sectionData, ::uint32_t o, ::uint32_t 
   if (!sectionData)
     return false;
 
-  READ_DWORD(sectionData, o, rdt, Characteristics);
-  READ_DWORD(sectionData, o, rdt, TimeDateStamp);
-  READ_WORD(sectionData, o, rdt, MajorVersion);
-  READ_WORD(sectionData, o, rdt, MinorVersion);
-  READ_WORD(sectionData, o, rdt, NameEntries);
-  READ_WORD(sectionData, o, rdt, IDEntries);
+  if(readDword(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->Characteristics)), rdt.Characteristics) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->TimeDateStamp)), rdt.TimeDateStamp) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->MajorVersion)), rdt.MajorVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->MinorVersion)), rdt.MinorVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->NameEntries)), rdt.NameEntries) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdt)>::type *)0)->IDEntries)), rdt.IDEntries) == false) { PE_ERR(PEERR_READ); return false; };
 
   o += sizeof(resource_dir_table);
 
@@ -168,10 +168,14 @@ bool parse_resource_table(bounded_buffer *sectionData, ::uint32_t o, ::uint32_t 
     } else {
       rde = dirent;
     }
-
-    READ_DWORD_PTR(sectionData, o, rde, ID);
-    READ_DWORD_PTR(sectionData, o, rde, RVA);
-
+	
+	resource_dir_entry *e = (resource_dir_entry *)(sectionData + o);
+	
+  if(readDword(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rde)>::type)0)->ID)), rde->ID) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(sectionData,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rde)>::type)0)->RVA)), rde->RVA) == false) { PE_ERR(PEERR_READ); return false; };
+//    if(readDword((bounded_buffer *)e,0, rde->ID) == false) { PE_ERR(PEERR_READ); return false; };
+//    if(readDword((bounded_buffer *)e,4, rde->RVA) == false) { PE_ERR(PEERR_READ); return false; };
+	
     o += sizeof(resource_dir_entry_sz);
 
     if (depth == 0) {
@@ -210,10 +214,11 @@ bool parse_resource_table(bounded_buffer *sectionData, ::uint32_t o, ::uint32_t 
       * We could store the original o value and reset it when we are done,
       * but meh.
       */
-      READ_DWORD(sectionData, rde->RVA, rdat, RVA);
-      READ_DWORD(sectionData, rde->RVA, rdat, size);
-      READ_DWORD(sectionData, rde->RVA, rdat, codepage);
-      READ_DWORD(sectionData, rde->RVA, rdat, reserved);
+      if(readDword(sectionData,rde->RVA+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdat)>::type *)0)->RVA)), rdat.RVA) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(sectionData,rde->RVA+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdat)>::type *)0)->size)), rdat.size) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(sectionData,rde->RVA+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdat)>::type *)0)->codepage)), rdat.codepage) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(sectionData,rde->RVA+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(rdat)>::type *)0)->reserved)), rdat.reserved) == false) { PE_ERR(PEERR_READ); return false; };
+
 
       resource rsrc;
 
@@ -273,9 +278,9 @@ bool getResources(bounded_buffer *b, bounded_buffer *fileBegin, list<section> se
   return true;
 }
 
-bool getSections( bounded_buffer  *b, 
+bool getSections( bounded_buffer  *b,
                   bounded_buffer  *fileBegin,
-                  nt_header_32    &nthdr, 
+                  nt_header_32    &nthdr,
                   list<section>   &secs) {
   if(b == NULL) {
     return false;
@@ -284,7 +289,7 @@ bool getSections( bounded_buffer  *b,
   //get each of the sections...
   for(::uint32_t i = 0; i < nthdr.FileHeader.NumberOfSections; i++) {
     image_section_header  curSec;
-    
+
     ::uint32_t  o = i*sizeof(image_section_header);
     for(::uint32_t k = 0; k < NT_SHORT_NAME_LEN; k++) {
       if(readByte(b, o+k, curSec.Name[k]) == false) {
@@ -292,17 +297,17 @@ bool getSections( bounded_buffer  *b,
       }
     }
 
-    READ_DWORD(b, o, curSec, Misc.VirtualSize);
-    READ_DWORD(b, o, curSec, VirtualAddress);
-    READ_DWORD(b, o, curSec, SizeOfRawData);
-    READ_DWORD(b, o, curSec, PointerToRawData);
-    READ_DWORD(b, o, curSec, PointerToRelocations);
-    READ_DWORD(b, o, curSec, PointerToLinenumbers);
-    READ_WORD(b, o, curSec, NumberOfRelocations);
-    READ_WORD(b, o, curSec, NumberOfLinenumbers);
-    READ_DWORD(b, o, curSec, Characteristics);
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->Misc.VirtualSize)), curSec.Misc.VirtualSize) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->VirtualAddress)), curSec.VirtualAddress) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->SizeOfRawData)), curSec.SizeOfRawData) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->PointerToRawData)), curSec.PointerToRawData) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->PointerToRelocations)), curSec.PointerToRelocations) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->PointerToLinenumbers)), curSec.PointerToLinenumbers) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readWord(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->NumberOfRelocations)), curSec.NumberOfRelocations) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readWord(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->NumberOfLinenumbers)), curSec.NumberOfLinenumbers) == false) { PE_ERR(PEERR_READ); return false; };
+    if(readDword(b,o+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curSec)>::type *)0)->Characteristics)), curSec.Characteristics) == false) { PE_ERR(PEERR_READ); return false; };
 
-    //now we have the section header information, so fill in a section 
+    //now we have the section header information, so fill in a section
     //object appropriately
     section thisSec;
     for(::uint32_t i = 0; i < NT_SHORT_NAME_LEN; i++) {
@@ -326,7 +331,7 @@ bool getSections( bounded_buffer  *b,
     ::uint32_t  lowOff = curSec.PointerToRawData;
     ::uint32_t  highOff = lowOff+curSec.SizeOfRawData;
     thisSec.sectionData = splitBuffer(fileBegin, lowOff, highOff);
-    
+
     secs.push_back(thisSec);
   }
 
@@ -334,42 +339,43 @@ bool getSections( bounded_buffer  *b,
 }
 
 bool readOptionalHeader(bounded_buffer *b, optional_header_32 &header) {
-  READ_WORD(b, 0, header, Magic);
+  optional_header_32 e = header;
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Magic)), header.Magic) == false) { PE_ERR(PEERR_READ); return false; };
 
-  READ_BYTE(b, 0, header, MajorLinkerVersion);
-  READ_BYTE(b, 0, header, MinorLinkerVersion);
-  READ_DWORD(b, 0, header, SizeOfCode);
-  READ_DWORD(b, 0, header, SizeOfInitializedData);
-  READ_DWORD(b, 0, header, SizeOfUninitializedData);
-  READ_DWORD(b, 0, header, AddressOfEntryPoint);
-  READ_DWORD(b, 0, header, BaseOfCode);
-  READ_DWORD(b, 0, header, BaseOfData);
-  READ_DWORD(b, 0, header, ImageBase);
-  READ_DWORD(b, 0, header, SectionAlignment);
-  READ_DWORD(b, 0, header, FileAlignment);
-  READ_WORD(b, 0, header, MajorOperatingSystemVersion);
-  READ_WORD(b, 0, header, MinorOperatingSystemVersion);
-  READ_WORD(b, 0, header, MajorImageVersion);
-  READ_WORD(b, 0, header, MinorImageVersion);
-  READ_WORD(b, 0, header, MajorSubsystemVersion);
-  READ_WORD(b, 0, header, MinorSubsystemVersion);
-  READ_DWORD(b, 0, header, Win32VersionValue);
-  READ_DWORD(b, 0, header, SizeOfImage);
-  READ_DWORD(b, 0, header, SizeOfHeaders);
-  READ_DWORD(b, 0, header, CheckSum);
-  READ_WORD(b, 0, header, Subsystem);
-  READ_WORD(b, 0, header, DllCharacteristics);
-  READ_DWORD(b, 0, header, SizeOfStackReserve);
-  READ_DWORD(b, 0, header, SizeOfStackCommit);
-  READ_DWORD(b, 0, header, SizeOfHeapReserve);
-  READ_DWORD(b, 0, header, SizeOfHeapCommit);
-  READ_DWORD(b, 0, header, LoaderFlags);
-  READ_DWORD(b, 0, header, NumberOfRvaAndSizes);
+  if(readByte(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorLinkerVersion)), header.MajorLinkerVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readByte(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorLinkerVersion)), header.MinorLinkerVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfCode)), header.SizeOfCode) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfInitializedData)), header.SizeOfInitializedData) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfUninitializedData)), header.SizeOfUninitializedData) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->AddressOfEntryPoint)), header.AddressOfEntryPoint) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->BaseOfCode)), header.BaseOfCode) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->BaseOfData)), header.BaseOfData) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->ImageBase)), header.ImageBase) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SectionAlignment)), header.SectionAlignment) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->FileAlignment)), header.FileAlignment) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorOperatingSystemVersion)), header.MajorOperatingSystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorOperatingSystemVersion)), header.MinorOperatingSystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorImageVersion)), header.MajorImageVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorImageVersion)), header.MinorImageVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorSubsystemVersion)), header.MajorSubsystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorSubsystemVersion)), header.MinorSubsystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Win32VersionValue)), header.Win32VersionValue) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfImage)), header.SizeOfImage) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeaders)), header.SizeOfHeaders) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->CheckSum)), header.CheckSum) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Subsystem)), header.Subsystem) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->DllCharacteristics)), header.DllCharacteristics) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfStackReserve)), header.SizeOfStackReserve) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfStackCommit)), header.SizeOfStackCommit) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeapReserve)), header.SizeOfHeapReserve) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeapCommit)), header.SizeOfHeapCommit) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->LoaderFlags)), header.LoaderFlags) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->NumberOfRvaAndSizes)), header.NumberOfRvaAndSizes) == false) { PE_ERR(PEERR_READ); return false; };
 
   for(::uint32_t i = 0; i < header.NumberOfRvaAndSizes; i++) {
     ::uint32_t  c = (i*sizeof(data_directory));
     c+= _offset(optional_header_32, DataDirectory[0]);
-    ::uint32_t  o; 
+    ::uint32_t  o;
 
     o = c + _offset(data_directory, VirtualAddress);
     if(readDword(b, o, header.DataDirectory[i].VirtualAddress) == false) {
@@ -386,36 +392,37 @@ bool readOptionalHeader(bounded_buffer *b, optional_header_32 &header) {
 }
 
 bool readOptionalHeader64(bounded_buffer *b, optional_header_64 &header) {
-  READ_WORD(b, 0, header, Magic);
+	optional_header_64 e = header;
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Magic)), header.Magic) == false) { PE_ERR(PEERR_READ); return false; };
 
-  READ_BYTE(b, 0, header, MajorLinkerVersion);
-  READ_BYTE(b, 0, header, MinorLinkerVersion);
-  READ_DWORD(b, 0, header, SizeOfCode);
-  READ_DWORD(b, 0, header, SizeOfInitializedData);
-  READ_DWORD(b, 0, header, SizeOfUninitializedData);
-  READ_DWORD(b, 0, header, AddressOfEntryPoint);
-  READ_DWORD(b, 0, header, BaseOfCode);
-  READ_QWORD(b, 0, header, ImageBase);
-  READ_DWORD(b, 0, header, SectionAlignment);
-  READ_DWORD(b, 0, header, FileAlignment);
-  READ_WORD(b, 0, header, MajorOperatingSystemVersion);
-  READ_WORD(b, 0, header, MinorOperatingSystemVersion);
-  READ_WORD(b, 0, header, MajorImageVersion);
-  READ_WORD(b, 0, header, MinorImageVersion);
-  READ_WORD(b, 0, header, MajorSubsystemVersion);
-  READ_WORD(b, 0, header, MinorSubsystemVersion);
-  READ_DWORD(b, 0, header, Win32VersionValue);
-  READ_DWORD(b, 0, header, SizeOfImage);
-  READ_DWORD(b, 0, header, SizeOfHeaders);
-  READ_DWORD(b, 0, header, CheckSum);
-  READ_WORD(b, 0, header, Subsystem);
-  READ_WORD(b, 0, header, DllCharacteristics);
-  READ_QWORD(b, 0, header, SizeOfStackReserve);
-  READ_QWORD(b, 0, header, SizeOfStackCommit);
-  READ_QWORD(b, 0, header, SizeOfHeapReserve);
-  READ_QWORD(b, 0, header, SizeOfHeapCommit);
-  READ_DWORD(b, 0, header, LoaderFlags);
-  READ_DWORD(b, 0, header, NumberOfRvaAndSizes);
+  if(readByte(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorLinkerVersion)), header.MajorLinkerVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readByte(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorLinkerVersion)), header.MinorLinkerVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfCode)), header.SizeOfCode) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfInitializedData)), header.SizeOfInitializedData) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfUninitializedData)), header.SizeOfUninitializedData) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->AddressOfEntryPoint)), header.AddressOfEntryPoint) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->BaseOfCode)), header.BaseOfCode) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readQword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->ImageBase)), header.ImageBase) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SectionAlignment)), header.SectionAlignment) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->FileAlignment)), header.FileAlignment) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorOperatingSystemVersion)), header.MajorOperatingSystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorOperatingSystemVersion)), header.MinorOperatingSystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorImageVersion)), header.MajorImageVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorImageVersion)), header.MinorImageVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MajorSubsystemVersion)), header.MajorSubsystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->MinorSubsystemVersion)), header.MinorSubsystemVersion) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Win32VersionValue)), header.Win32VersionValue) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfImage)), header.SizeOfImage) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeaders)), header.SizeOfHeaders) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->CheckSum)), header.CheckSum) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Subsystem)), header.Subsystem) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->DllCharacteristics)), header.DllCharacteristics) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readQword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfStackReserve)), header.SizeOfStackReserve) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readQword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfStackCommit)), header.SizeOfStackCommit) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readQword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeapReserve)), header.SizeOfHeapReserve) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readQword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfHeapCommit)), header.SizeOfHeapCommit) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->LoaderFlags)), header.LoaderFlags) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->NumberOfRvaAndSizes)), header.NumberOfRvaAndSizes) == false) { PE_ERR(PEERR_READ); return false; };
 
   for(::uint32_t i = 0; i < header.NumberOfRvaAndSizes; i++) {
     ::uint32_t  c = (i*sizeof(data_directory));
@@ -437,13 +444,14 @@ bool readOptionalHeader64(bounded_buffer *b, optional_header_64 &header) {
 }
 
 bool readFileHeader(bounded_buffer *b, file_header &header) {
-  READ_WORD(b, 0, header, Machine);
-  READ_WORD(b, 0, header, NumberOfSections);
-  READ_DWORD(b, 0, header, TimeDateStamp);
-  READ_DWORD(b, 0, header, PointerToSymbolTable);
-  READ_DWORD(b, 0, header, NumberOfSymbols);
-  READ_WORD(b, 0, header, SizeOfOptionalHeader);
-  READ_WORD(b, 0, header, Characteristics);
+	file_header e = header;
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Machine)), header.Machine) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->NumberOfSections)), header.NumberOfSections) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->TimeDateStamp)), header.TimeDateStamp) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->PointerToSymbolTable)), header.PointerToSymbolTable) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readDword(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->NumberOfSymbols)), header.NumberOfSymbols) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->SizeOfOptionalHeader)), header.SizeOfOptionalHeader) == false) { PE_ERR(PEERR_READ); return false; };
+  if(readWord(b,0+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(e)>::type *)0)->Characteristics)), header.Characteristics) == false) { PE_ERR(PEERR_READ); return false; };
 
   return true;
 }
@@ -461,9 +469,9 @@ bool readNtHeader(bounded_buffer *b, nt_header_32 &header) {
   }
 
   header.Signature = pe_magic;
-  bounded_buffer  *fhb = 
+  bounded_buffer  *fhb =
     splitBuffer(b, _offset(nt_header_32, FileHeader), b->bufLen);
-  
+
   if(fhb == NULL) {
     PE_ERR(PEERR_MEM);
     return false;
@@ -479,7 +487,7 @@ bool readNtHeader(bounded_buffer *b, nt_header_32 &header) {
    * out to be a PE32+. The start of the buffer is at the same spot in the
    * buffer regardless.
    */
-  bounded_buffer *ohb = 
+  bounded_buffer *ohb =
     splitBuffer(b, _offset(nt_header_32, OptionalHeader), b->bufLen);
 
   if(ohb == NULL) {
@@ -541,7 +549,7 @@ bool getHeader(bounded_buffer *file, pe_header &p, bounded_buffer *&rem) {
     PE_ERR(PEERR_READ);
     return false;
   }
-  curOffset += offset; 
+  curOffset += offset;
 
   //now, we can read out the fields of the NT headers
   bounded_buffer  *ntBuf = splitBuffer(file, curOffset, file->bufLen);
@@ -573,7 +581,8 @@ bool getHeader(bounded_buffer *file, pe_header &p, bounded_buffer *&rem) {
   return true;
 }
 
-parsed_pe *ParsePEFromFile(const char *filePath) {
+parsed_pe *ParsePEFromXXX(parsed_pe *p) {
+  /*
   //first, create a new parsed_pe structure
   parsed_pe *p = new parsed_pe();
 
@@ -582,8 +591,9 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
     return NULL;
   }
 
-  //make a new buffer object to hold just our file data 
+  //make a new buffer object to hold just our file data
   p->fileBuffer = readFileToFileBuffer(filePath);
+  */
 
   if(p->fileBuffer == NULL) {
     delete p;
@@ -617,7 +627,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
     PE_ERR(PEERR_SECT);
     return NULL;
   }
-
+  
   if(getResources(remaining, file, p->internal->secs, p->internal->rsrcs) == false) {
     deleteBuffer(remaining);
     deleteBuffer(p->fileBuffer);
@@ -625,7 +635,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
     PE_ERR(PEERR_RESC);
     return NULL;
   }
-
+  
   //get exports
   data_directory exportDir;
   if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
@@ -660,7 +670,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
     ::uint32_t  nameRva;
     if(readDword( s.sectionData,
                   rvaofft+_offset(export_dir_table, NameRVA),
-                  nameRva) == false) 
+                  nameRva) == false)
     {
       PE_ERR(PEERR_READ);
       return NULL;
@@ -690,7 +700,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
         PE_ERR(PEERR_READ);
         return NULL;
       }
-      
+
       if(c == 0) {
         break;
       }
@@ -714,7 +724,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
       ::uint32_t  namesRVA;
       if(readDword( s.sectionData,
                     rvaofft+_offset(export_dir_table, NamePointerRVA),
-                    namesRVA) == false) 
+                    namesRVA) == false)
       {
         PE_ERR(PEERR_READ);
         return NULL;
@@ -766,7 +776,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
 
       ::uint32_t  eatOff = eatVA - eatSec.sectionBase;
 
-      //get the ordinal base 
+      //get the ordinal base
       ::uint32_t  ordinalBase;
       if(readDword( s.sectionData,
                     rvaofft+_offset(export_dir_table, OrdinalBase),
@@ -814,7 +824,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
           PE_ERR(PEERR_READ);
           return NULL;
         }
- 
+
         VA curNameVA;
         if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
           curNameVA = curNameRVA + p->peHeader.nt.OptionalHeader.ImageBase;
@@ -852,9 +862,9 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
 
         //now, for this i, look it up in the ExportOrdinalTable
         ::uint16_t  ordinal;
-        if(readWord(ordinalTableSec.sectionData, 
-                    ordinalOff+(i*sizeof(uint16_t)), 
-                    ordinal) == false) 
+        if(readWord(ordinalTableSec.sectionData,
+                    ordinalOff+(i*sizeof(uint16_t)),
+                    ordinal) == false)
         {
           PE_ERR(PEERR_READ);
           return NULL;
@@ -869,10 +879,10 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
           return NULL;
         }
 
-        bool  isForwarded = 
-          ((symRVA >= exportDir.VirtualAddress) && 
+        bool  isForwarded =
+          ((symRVA >= exportDir.VirtualAddress) &&
           (symRVA < exportDir.VirtualAddress+exportDir.Size));
-        
+
         if(isForwarded == false) {
           ::uint32_t symVA;
           if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
@@ -930,16 +940,16 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
     ::uint32_t  pageRva;
     ::uint32_t  blockSize;
 
-    if(readDword( d.sectionData, 
-                  rvaofft+_offset(reloc_block, PageRVA), 
+    if(readDword( d.sectionData,
+                  rvaofft+_offset(reloc_block, PageRVA),
                   pageRva) == false)
     {
       PE_ERR(PEERR_READ);
       return NULL;
     }
-   
-    if(readDword( d.sectionData, 
-                  rvaofft+_offset(reloc_block, BlockSize), 
+
+    if(readDword( d.sectionData,
+                  rvaofft+_offset(reloc_block, BlockSize),
                   blockSize) == false)
     {
       PE_ERR(PEERR_READ);
@@ -988,7 +998,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
       rvaofft += sizeof(::uint16_t);
     }
   }
-   
+
   //get imports
   data_directory importDir;
   if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
@@ -1027,14 +1037,14 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
       //read each directory entry out
       import_dir_entry  curEnt;
 
-      READ_DWORD_NULL(c.sectionData, offt, curEnt, LookupTableRVA);
-      READ_DWORD_NULL(c.sectionData, offt, curEnt, TimeStamp);
-      READ_DWORD_NULL(c.sectionData, offt, curEnt, ForwarderChain);
-      READ_DWORD_NULL(c.sectionData, offt, curEnt, NameRVA);
-      READ_DWORD_NULL(c.sectionData, offt, curEnt, AddressRVA);
+      if(readDword(c.sectionData,offt+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curEnt)>::type *)0)->LookupTableRVA)), curEnt.LookupTableRVA) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(c.sectionData,offt+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curEnt)>::type *)0)->TimeStamp)), curEnt.TimeStamp) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(c.sectionData,offt+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curEnt)>::type *)0)->ForwarderChain)), curEnt.ForwarderChain) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(c.sectionData,offt+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curEnt)>::type *)0)->NameRVA)), curEnt.NameRVA) == false) { PE_ERR(PEERR_READ); return false; };
+      if(readDword(c.sectionData,offt+((boost::uint32_t)(ptrdiff_t)&(((std::identity<decltype(curEnt)>::type *)0)->AddressRVA)), curEnt.AddressRVA) == false) { PE_ERR(PEERR_READ); return false; };
 
       //are all the fields in curEnt null? then we break
-      if( curEnt.LookupTableRVA == 0 && 
+      if( curEnt.LookupTableRVA == 0 &&
           curEnt.NameRVA == 0 &&
           curEnt.AddressRVA == 0) {
         break;
@@ -1065,7 +1075,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
           PE_ERR(PEERR_READ);
           return NULL;
         }
-        
+
         if(c == 0) {
           break;
         }
@@ -1076,7 +1086,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
 
       //then, try and get all of the sub-symbols
       VA lookupVA;
-      if(curEnt.LookupTableRVA != 0) { 
+      if(curEnt.LookupTableRVA != 0) {
         if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
           lookupVA = curEnt.LookupTableRVA + p->peHeader.nt.OptionalHeader.ImageBase;
         } else if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_64_MAGIC) {
@@ -1101,7 +1111,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
         PE_ERR(PEERR_SECTVA);
         return NULL;
       }
-      
+
       ::uint64_t  lookupOff = lookupVA - lookupSec.sectionBase;
       ::uint32_t  offInTable = 0;
       do {
@@ -1146,7 +1156,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
             PE_ERR(PEERR_SECTVA);
             return NULL;
           }
-          
+
           ::uint32_t  nameOff = valVA - symNameSec.sectionBase;
           nameOff += sizeof(::uint16_t);
           do {
@@ -1156,7 +1166,7 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
               PE_ERR(PEERR_READ);
               return NULL;
             }
-            
+
             if(d == 0) {
               break;
             }
@@ -1181,9 +1191,9 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
           ent.moduleName = modName;
           p->internal->imports.push_back(ent);
         } else {
-          string      symName = 
+          string      symName =
             "ORDINAL_" + modName + "_" + to_string<uint32_t>(oval, dec);
-          
+
           importent ent;
 
           if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
@@ -1194,13 +1204,13 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
             PE_ERR(PEERR_MAGIC);
             return NULL;
           }
-          
+
           ent.symbolName = symName;
           ent.moduleName = modName;
 
           p->internal->imports.push_back(ent);
         }
-        
+
         if (p->peHeader.nt.OptionalMagic == NT_OPTIONAL_32_MAGIC) {
           lookupOff += sizeof(::uint32_t);
           offInTable += sizeof(::uint32_t);
@@ -1220,6 +1230,34 @@ parsed_pe *ParsePEFromFile(const char *filePath) {
   deleteBuffer(remaining);
 
   return p;
+}
+
+parsed_pe *ParsePEFromFile(const char *filePath) {
+  //first, create a new parsed_pe structure
+  parsed_pe *p = new parsed_pe();
+
+  if(p == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  //make a new buffer object to hold just our file data
+  p->fileBuffer = readFileToFileBuffer(filePath);
+  return ParsePEFromXXX(p);
+}
+
+parsed_pe *ParsePEFromMem(const char *head, unsigned long memSize) {
+  //first, create a new parsed_pe structure
+  parsed_pe *p = new parsed_pe();
+
+  if(p == NULL) {
+    PE_ERR(PEERR_MEM);
+    return NULL;
+  }
+
+  //make a new buffer object to hold just our file data
+  p->fileBuffer = readMemToFileBuffer(head, memSize);
+  return ParsePEFromXXX(p);
 }
 
 void DestructParsedPE(parsed_pe *p) {

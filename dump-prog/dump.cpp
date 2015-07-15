@@ -116,7 +116,20 @@ int printSecs(void                  *N,
 
 int main(int argc, char *argv[]) {
   if(argc == 2) {
+
+#ifdef FROM_FILE
     parsed_pe *p = ParsePEFromFile(argv[1]);
+#else
+	FILE *fp = fopen(argv[1], "rb");
+	fseek(fp, 0, SEEK_END);
+	int sz = ftell(fp);
+
+	char *head = (char *)malloc(sz);
+	fseek(fp, 0, SEEK_SET);
+	fread(head, 1, sz, fp);
+	fclose(fp);
+	parsed_pe *p = ParsePEFromMem(head, sz);
+#endif
 
     if(p != NULL) {
       //print out some things
