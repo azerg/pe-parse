@@ -78,6 +78,23 @@ static const char *pe_err_str[] = {
   "Bad magic"
 };
 
+#ifndef WIN32
+  namespace std
+  {
+    // TEMPLATE CLASS identity
+    template<class _Ty>
+    struct identity
+    {	// map _Ty to type unchanged
+      typedef _Ty type;
+
+      const _Ty& operator()(const _Ty& _Left) const
+      {	// apply identity operator to operand
+        return (_Left);
+      }
+    };
+  } // namespace std
+#endif
+
 int GetPEErr() {
   return err;
 }
