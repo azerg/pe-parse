@@ -1,4 +1,7 @@
-pe-parse for Visual Studio [![Build Status](https://travis-ci.org/azerg/pe-parse.svg?branch=master)] ( https://github.com/azerg/pe-parse )
+pe-parse for Visual Studio [![Build Status](https://travis-ci.org/azerg/pe-parse.svg?branch=master)] ( https://github.com/azerg/pe-parse ) <a href="https://scan.coverity.com/projects/5766">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/5766/badge.svg"/>
+</a>
 =========================================
 
 pe-parse is a principled, lightweight parser for windows portable executable files. It was created to assist in compiled program analysis, potentially of programs of unknown origins. This means that it should be resistant to malformed or maliciously crafted PE files, and it should support questions that analysis software would ask of an executable program container. For example, listing relocations, describing imports and exports, and supporting byte reads from virtual addresses as well as file offsets. 
