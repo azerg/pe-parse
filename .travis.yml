@@ -4,7 +4,6 @@ before_install:
   - sudo apt-get install -qq libboost-all-dev
 script: cmake . && make
 compiler:
-  - clang
   - gcc
 notifications:
   email: false
