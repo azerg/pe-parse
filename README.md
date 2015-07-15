@@ -1,5 +1,6 @@
 pe-parse for Visual Studio
-[![Build Status](https://travis-ci.org/azerg/pe-parse.svg?branch=master)] ( https://github.com/azerg/pe-parse ) <a href="https://scan.coverity.com/projects/5766">
+[![Build Status](https://travis-ci.org/azerg/pe-parse.svg?branch=master)] ( https://github.com/azerg/pe-parse )
+<a href="https://scan.coverity.com/projects/5766">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/5766/badge.svg"/>
 </a>
